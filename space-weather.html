@@ -21,6 +21,8 @@
     <meta name="twitter:title" content="Nabdeep Patel's Portfolio">
     <meta name="twitter:description" content="Showcasing skills in data science, space-weeather, artificial intelligence, Python, Machine Learning, Tableau, and SQL.">
     <meta name="twitter:image" content="https://media.licdn.com/dms/image/D5603AQE25zGoh1gioA/profile-displayphoto-shrink_800_800/0/1719162198018?e=1725494400&v=beta&t=5pvA_M3FstAqVAYxuWxYLEilVtJ5RI9Tu6MTAwe1AnM">
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -134,7 +136,43 @@
     margin: 0;
     color: #555;
 }
+    .section-title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #222;
+    }
 
+    .data-card {
+      background:white;
+      border-radius:12px;
+      padding:15px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom:20px;
+    }
+
+    .model-box{
+      background:#111;
+      padding:12px;
+      border-radius:10px;
+      color:white;
+      text-align:center;
+      margin-bottom:10px;
+    }
+
+    .sat-image{
+      width:100%;
+      border-radius:10px;
+      margin-bottom:10px;
+    }
+
+    .bulletin-box{
+      white-space:pre-line;
+      font-size:15px;
+      padding:15px;
+      background:#f1f1f1;
+      border-radius:10px;
+    }
 
     </style>
   </head>
@@ -201,9 +239,50 @@
   </header>
   
 
-  <!-- Images of Me --> 
+  <!-- ==== DASHBOARD STARTS HERE ==== -->
+  <div class="w3-container" style="padding:20px;">
 
-  <h1> This web-page is under upgradation, Please visit later. You can still view the other pages of the website</h1>
+    <!-- Satellite Images Section -->
+    <div class="section-title">Latest Satellite Observations</div>
+    <div id="satellite-grid" class="w3-row-padding">
+      <div class="w3-third"><div class="data-card"><img class="sat-image" id="aia-171" src="" alt="AIA 171"></div></div>
+      <div class="w3-third"><div class="data-card"><img class="sat-image" id="aia-193" src="" alt="AIA 193"></div></div>
+      <div class="w3-third"><div class="data-card"><img class="sat-image" id="hmi-mag" src="" alt="HMI Magnetogram"></div></div>
+    </div>
+
+
+    <!-- Active Regions Table -->
+    <div class="section-title">NOAA Active Regions</div>
+    <div class="data-card">
+      <table class="w3-table w3-striped w3-bordered" id="ar-table">
+        <tr><th>NOAA Number</th><th>Location</th><th>Class</th><th>Growth</th></tr>
+      </table>
+    </div>
+
+
+    <!-- Prediction Panels -->
+    <div class="section-title">Prediction Summary</div>
+    <div class="w3-row-padding">
+      <div class="w3-third"><div class="model-box">Flare Probability<br><span id="flare-prob">—</span></div></div>
+      <div class="w3-third"><div class="model-box">CME Likelihood<br><span id="cme-prob">—</span></div></div>
+      <div class="w3-third"><div class="model-box">Flare Class Prediction<br><span id="flare-class">—</span></div></div>
+    </div>
+
+
+    <!-- GOES & Dst Plots -->
+    <div class="section-title">X-ray Flux & Geomagnetic Activity</div>
+    <div class="w3-row-padding">
+      <div class="w3-half"><div class="data-card"><img id="goes-xray" class="sat-image" src="" alt="GOES X-ray Flux"></div></div>
+      <div class="w3-half"><div class="data-card"><img id="dst-index" class="sat-image" src="" alt="Dst Index"></div></div>
+    </div>
+
+
+    <!-- Bulletin -->
+    <div class="section-title">Daily Space Weather Bulletin</div>
+    <div class="data-card bulletin-box" id="bulletin-box">Loading bulletin…</div>
+
+  </div>
+  <!-- ==== END DASHBOARD ==== -->
 
 <footer class="w3-container w3-padding-32" style="background-image: url('https://th.bing.com/th/id/OIP.f_MrT9yLVE_HxNSliOHBgQHaEL?rs=1&pid=ImgDetMain'); background-size: cover;">
     <div class="w3-row-padding">
@@ -244,6 +323,45 @@ function w3_close() {
     document.getElementById("mySidebar").style.display = "none";
     document.getElementById("myOverlay").style.display = "none";
 }
+  
+async function loadImages(){
+  const data = await fetch('images.json').then(r=>r.json());
+  document.getElementById('aia-171').src = data.aia171;
+  document.getElementById('aia-193').src = data.aia193;
+  document.getElementById('hmi-mag').src = data.hmi;
+  document.getElementById('goes-xray').src = data.goes;
+  document.getElementById('dst-index').src = data.dst;
+}
+
+// Load Active Regions
+async function loadActiveRegions(){
+  const ar = await fetch('active_regions.json').then(r=>r.json());
+  let table = document.getElementById("ar-table");
+  ar.forEach(x=>{
+    let row = `<tr><td>${x.noaa}</td><td>${x.location}</td><td>${x.class}</td><td>${x.growth}</td></tr>`;
+    table.innerHTML += row;
+  });
+}
+
+// Predictions
+async function loadPredictions(){
+  const p = await fetch('predictions.json').then(r=>r.json());
+  document.getElementById('flare-prob').textContent = p.flareProbability;
+  document.getElementById('cme-prob').textContent = p.cmeProbability;
+  document.getElementById('flare-class').textContent = p.classPrediction;
+}
+
+// Bulletin
+async function loadBulletin(){
+  const text = await fetch('bulletin.txt').then(r=>r.text());
+  document.getElementById('bulletin-box').textContent = text;
+}
+
+// Init
+loadImages();
+loadActiveRegions();
+loadPredictions();
+loadBulletin();
 </script>
 
 </body>
